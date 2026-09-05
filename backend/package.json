@@ -6,15 +6,15 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "prisma generate && tsc",
+    "build": "node node_modules/prisma/build/index.js generate && tsc",
     "seed": "ts-node prisma/seed.ts",
     "seed:demo": "ts-node prisma/seed.ts",
-    "migrate:deploy": "prisma db push",
+    "migrate:deploy": "node node_modules/prisma/build/index.js db push",
     "db:postgres": "node scripts/switch-db.js postgres",
     "db:sqlite": "node scripts/switch-db.js sqlite"
   },
   "dependencies": {
-    "@prisma/client": "^5.10.2",
+    "@prisma/client": "^5.22.0",
     "@types/node": "^20.11.24",
     "axios": "^1.20.0",
     "bcryptjs": "^2.4.3",
@@ -22,7 +22,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^5.10.2",
+    "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "zod": "^3.22.4"
