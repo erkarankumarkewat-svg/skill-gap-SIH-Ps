@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillTrack India — Longitudinal Skilling Outcomes & Livelihood Intelligence</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- TOP DEMO MODE HEADER BAR -->
+  <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white border-b border-indigo-800 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center justify-center p-1.5 bg-amber-500 rounded-lg text-slate-950 font-black text-xs tracking-wider shadow">
+          DEMO MODE
+        </span>
+        <div class="flex items-center space-x-2 text-xs font-medium text-slate-200">
+          <span class="hidden sm:inline">⚡ Instant Hero Presets:</span>
+          <button onclick="loadHero(1)" class="px-2 py-1 bg-indigo-800/80 hover:bg-indigo-700 rounded border border-indigo-600 transition" title="Priya Sharma - Verified Placement">Case 1: Placed & Verified</button>
+          <button onclick="loadHero(2)" class="px-2 py-1 bg-indigo-800/80 hover:bg-indigo-700 rounded border border-indigo-600 transition" title="Ramesh Kumar - Solar Self-Employed">Case 2: Self-Employed</button>
+          <button onclick="loadHero(3)" class="px-2 py-1 bg-indigo-800/80 hover:bg-indigo-700 rounded border border-indigo-600 transition" title="Sunita Meena - Transit Barrier">Case 3: Mobility Barrier</button>
+          <button onclick="loadHero(4)" class="px-2 py-1 bg-indigo-800/80 hover:bg-indigo-700 rounded border border-indigo-600 transition" title="Amit Verma - Unreachable Fallback">Case 4: Unreachable</button>
+          <button onclick="loadHero(5)" class="px-2 py-1 bg-indigo-800/80 hover:bg-indigo-700 rounded border border-indigo-600 transition" title="Vikram Singh - Employer Skill Gaps">Case 5: Skill Gaps</button>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs">
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Postgres / SQLite Active
+        </span>
+        <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">Cohort: 750 Trainees</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN BRANDING & ROLE BANNER -->
+  <div class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-sm">
+            ST
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              SkillTrack India
+              <span class="text-xs font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">SIH Prototype</span>
+            </h1>
+            <p class="text-xs font-medium text-slate-500">“From counting certificates to measuring livelihoods.”</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE ROLE SELECTOR -->
+      <div class="flex items-center space-x-2 text-xs">
+        <span class="text-slate-500 font-medium">Logged in as:</span>
+        <select id="roleSelect" onchange="switchRole(this.value)" class="bg-slate-100 text-slate-800 font-semibold px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="DISTRICT_ADMIN">District Admin (Jaipur)</option>
+          <option value="SYSTEM_ADMIN">System Admin (National)</option>
+          <option value="PROVIDER">Training Provider (Apex Academy)</option>
+          <option value="TRAINEE">Trainee (Priya Sharma)</option>
+          <option value="EMPLOYER">Employer Verifier (ABC Retail)</option>
+        </select>
+        <button onclick="refreshData()" class="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Refresh Live Data">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="lg:col-span-3">
+      <nav class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm space-y-1">
+        <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition bg-blue-50 text-blue-700">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Executive Dashboard</span>
+        </button>
+        <button onclick="showTab('passport')" id="tab-passport" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="contact" class="w-4 h-4"></i>
+          <span>Trainee Outcome Passport</span>
+        </button>
+        <button onclick="showTab('whatsapp')" id="tab-whatsapp" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          <span>Follow-up WhatsApp Bot</span>
+        </button>
+        <button onclick="showTab('verification')" id="tab-verification" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Employer OTP Verification</span>
+        </button>
+        <button onclick="showTab('providers')" id="tab-providers" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="award" class="w-4 h-4"></i>
+          <span>Provider Scorecard</span>
+        </button>
+        <button onclick="showTab('classifier')" id="tab-classifier" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          <span>Explainable Reason NLP</span>
+        </button>
+        <button onclick="showTab('integrations')" id="tab-integrations" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="network" class="w-4 h-4"></i>
+          <span>Govt Integration Center</span>
+        </button>
+        <button onclick="showTab('public')" id="tab-public" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="globe" class="w-4 h-4"></i>
+          <span>Public Policy Dashboard</span>
+        </button>
+        <button onclick="showTab('audit')" id="tab-audit" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>System Audit Trail</span>
+        </button>
+      </nav>
+
+      <!-- WOW DEMO QUICK TRIGGER CARD -->
+      <div class="mt-4 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-4 text-white shadow-md">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-1.5">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> The Judge WOW Flow
+        </h4>
+        <p class="text-xs text-slate-300 mb-3">Watch 1 event visibly ripple through Trainee Passport, Employer Verification, and Dashboard Analytics in real time.</p>
+        <button onclick="executeWowFlow()" class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5">
+          <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Run 30s Hero Simulation
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT PANELS -->
+    <main class="lg:col-span-9 space-y-6">
+
+      <!-- ======================================================== -->
+      <!-- TAB 1: EXECUTIVE DASHBOARD -->
+      <!-- ======================================================== -->
+      <section id="panel-dashboard" class="content-panel space-y-6">
+        <!-- TOP KPI CARDS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Certified Trainees</span>
+            <div class="text-2xl font-black text-slate-900 mt-1" id="kpi-certified">750</div>
+            <span class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+              <i data-lucide="check-circle-2" class="w-3 h-3"></i> 100% NCVET Aligned
+            </span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Placements</span>
+            <div class="text-2xl font-black text-blue-600 mt-1" id="kpi-verified">71%</div>
+            <span class="text-xs text-slate-500 font-medium">Employer OTP / EPFO</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">6-Month Retention</span>
+            <div class="text-2xl font-black text-indigo-600 mt-1" id="kpi-retention">64%</div>
+            <span class="text-xs text-emerald-600 font-medium">Livelihood Durability</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Verified Wage</span>
+            <div class="text-2xl font-black text-emerald-600 mt-1" id="kpi-wage">₹16,500</div>
+            <span class="text-xs text-emerald-600 font-medium">+28% Trajectory</span>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW: FUNNEL & RETENTION CURVE -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4 text-blue-600"></i>
+                Outcome Provenance Funnel
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">Longitudinal Layer</span>
+            </div>
+            <p class="text-xs text-slate-500">From certified completion to employer-verified livelihood retention.</p>
+            <div class="space-y-2 pt-2" id="funnel-container">
+              <!-- Dynamically Populated -->
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-indigo-600"></i>
+                Livelihood Retention Curve
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold">3M / 6M / 9M / 12M</span>
+            </div>
+            <p class="text-xs text-slate-500">Does training produce enduring employment or temporary placement?</p>
+            <div class="h-48">
+              <canvas id="retentionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- SKILL GAPS & POLICY ACTION CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>
+                Top Employer-Reported Skill Deficiencies
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-semibold">Feedback Intelligence</span>
+            </div>
+            <div class="space-y-2.5" id="skillgaps-container">
+              <!-- Dynamically Populated -->
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="lightbulb" class="w-4 h-4 text-blue-600"></i>
+              Actionable Policy Insights
+            </h3>
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-900">OBSERVED:</span>
+                <p class="text-slate-600">Retail courses show 22% higher 6-month attrition than Logistics, with 38% citing lack of inventory/Excel mastery.</p>
+                <div class="text-blue-700 font-semibold pt-1">RECOMMENDED ACTION: Mandate 15 hours practical ERP/POS simulator modules prior to batch assessment.</div>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-900">OBSERVED:</span>
+                <p class="text-slate-600">Transit distances exceeding 14km account for 31% of declined offers in rural Jaipur blocks.</p>
+                <div class="text-blue-700 font-semibold pt-1">RECOMMENDED ACTION: Pilot cluster-based electric mobility stipends for first 90 days of employment.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 2: TRAINEE OUTCOME PASSPORT -->
+      <!-- ======================================================== -->
+      <section id="panel-passport" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-200">
+            <div class="flex items-center space-x-4">
+              <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-md" id="pass-avatar">
+                PS
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h2 class="text-lg font-black text-slate-900" id="pass-name">Priya Sharma</h2>
+                  <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800" id="pass-provenance">EMPLOYER_VERIFIED ✓</span>
+                </div>
+                <div class="text-xs text-slate-500 font-mono mt-0.5" id="pass-pid">Persistent ID: STI-2026-004281</div>
+                <div class="text-xs text-slate-600 mt-1 flex items-center gap-2">
+                  <span id="pass-course">Retail Sales Associate</span> • 
+                  <span id="pass-provider">Apex Skilling Academy</span> • 
+                  <span id="pass-loc">Jaipur</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right space-y-1.5">
+              <span class="text-xs text-slate-400 uppercase font-semibold">DPDP Consent Status</span>
+              <div id="pass-consent-badge" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                <i data-lucide="lock" class="w-3 h-3 mr-1"></i> Consent Active (v2.1)
+              </div>
+              <div>
+                <button id="btn-toggle-consent" onclick="toggleActiveConsent()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1 ml-auto">
+                  <i data-lucide="shield-alert" class="w-3 h-3"></i> Revoke Tracking Consent
+                </button>
+              </div>
+              <div class="text-[10px] text-slate-400">Append-Only Immutable Event Ledger</div>
+            </div>
+          </div>
+
+          <!-- SUMMARY STATS -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase">Current Livelihood</span>
+              <div class="text-sm font-bold text-slate-900 mt-0.5" id="pass-status">Formal Employment</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase">Verified Wage</span>
+              <div class="text-sm font-bold text-emerald-600 mt-0.5" id="pass-wage">₹16,500 / month</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase">Durability / Retention</span>
+              <div class="text-sm font-bold text-indigo-600 mt-0.5" id="pass-retention">6M Confirmed</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase">Contactability Risk</span>
+              <div class="text-sm font-bold text-emerald-600 mt-0.5" id="pass-risk">LOW</div>
+            </div>
+          </div>
+
+          <!-- LONGITUDINAL EVENT TIMELINE -->
+          <div>
+            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-4">Immutable Longitudinal Timeline</h3>
+            <div class="relative border-l-2 border-slate-200 ml-3 space-y-6" id="passport-timeline">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 3: WHATSAPP BOT SIMULATOR -->
+      <!-- ======================================================== -->
+      <section id="panel-whatsapp" class="content-panel hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div class="md:col-span-5 flex justify-center">
+            <!-- Mobile Mockup -->
+            <div class="w-80 bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl border-4 border-slate-800 flex flex-col h-[520px]">
+              <div class="bg-emerald-800 rounded-t-2xl p-3 text-white flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs">ST</div>
+                <div>
+                  <h4 class="text-xs font-bold leading-tight">SkillTrack India Follow-up</h4>
+                  <span class="text-[10px] text-emerald-200">Official Outcome Bot</span>
+                </div>
+              </div>
+              <div class="flex-1 bg-[#e5ddd5] p-3 space-y-2 overflow-y-auto text-xs" id="chat-messages">
+                <div class="bg-white p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-slate-800">
+                  Hi Priya 👋 We're checking how your Retail Sales training has helped you since certification.
+                </div>
+                <div class="bg-white p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-slate-800">
+                  What is your current livelihood status?
+                  <div class="mt-2 space-y-1">
+                    <button onclick="replyBot('1. Working in Formal Job')" class="w-full text-left py-1 px-2 bg-slate-100 hover:bg-slate-200 rounded font-medium text-[11px] text-blue-700">1. Working in Formal Job</button>
+                    <button onclick="replyBot('2. Self-Employed / Own Business')" class="w-full text-left py-1 px-2 bg-slate-100 hover:bg-slate-200 rounded font-medium text-[11px] text-blue-700">2. Self-Employed / Business</button>
+                    <button onclick="replyBot('3. Declined offer due to distance')" class="w-full text-left py-1 px-2 bg-slate-100 hover:bg-slate-200 rounded font-medium text-[11px] text-blue-700">3. Not Working / Transit Gap</button>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-slate-100 p-2 rounded-b-2xl flex items-center space-x-2">
+                <input type="text" id="botInput" placeholder="Type response..." class="flex-1 bg-white border border-slate-300 px-3 py-1.5 rounded-full text-xs focus:outline-none">
+                <button onclick="sendManualBotMessage()" class="p-1.5 bg-emerald-600 text-white rounded-full"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="md:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="settings" class="w-4 h-4 text-emerald-600"></i>
+              Configurable Follow-up Engine
+            </h3>
+            <p class="text-xs text-slate-500">The follow-up engine triggers multi-channel outreach at 3, 6, 9, and 12-month cadences based on database configuration rather than hardcoded rules.</p>
+            <div class="space-y-3 text-xs">
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="font-bold text-slate-800">Channel Fallback Hierarchy:</div>
+                <div class="text-slate-600 mt-1 font-mono text-[11px]">Primary WhatsApp ➔ Secondary Mobile ➔ Alternate Contact ➔ Field Task</div>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="font-bold text-slate-800">Current Trigger Campaign:</div>
+                <div class="text-slate-600 mt-1">Cohort 2025-Q1 (Retail & Logistics) • Sent: 342 • Response Rate: 79%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 4: EMPLOYER OTP VERIFICATION -->
+      <!-- ======================================================== -->
+      <section id="panel-verification" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-xl mx-auto space-y-5">
+          <div class="flex items-center space-x-3 pb-3 border-b border-slate-200">
+            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <i data-lucide="building-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Employer Employment Verification Portal</h3>
+              <p class="text-xs text-slate-500">Simulated corporate HR portal to independently substantiate trainee claims.</p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 space-y-1">
+            <div class="font-bold flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i> Hackathon Demonstration Tip:</div>
+            <div>Simulated OTP generated for verification request: <span class="font-mono font-bold bg-amber-200 px-1.5 py-0.5 rounded text-slate-900" id="verify-demo-otp">482910</span></div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500 font-medium">Candidate ID</span>
+              <span class="font-bold text-slate-900" id="verify-cid">STI-2026-004281 (Priya Sharma)</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500 font-medium">Reported Employer</span>
+              <span class="font-bold text-slate-900" id="verify-emp">ABC Retail Pvt Ltd</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500 font-medium">Reported Job Role</span>
+              <span class="font-bold text-slate-900">Sales Associate</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <span class="text-slate-500 font-medium">Reported Monthly Wage</span>
+              <span class="font-bold text-slate-900">₹16,500</span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <label class="block text-xs font-bold text-slate-700">Enter Employer OTP Verification Token</label>
+            <input type="text" id="verify-otp-input" value="482910" class="w-full bg-slate-50 border border-slate-300 font-mono tracking-widest text-center text-lg font-bold py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+            <div class="pt-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Optional: Report Observed Skill Gaps</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                  <input type="checkbox" id="sg-excel" checked class="rounded text-blue-600">
+                  <span>Advanced Excel</span>
+                </label>
+                <label class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                  <input type="checkbox" id="sg-inv" checked class="rounded text-blue-600">
+                  <span>Inventory Handling</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex space-x-3 pt-4">
+              <button onclick="confirmEmployerOtp('CONFIRMED')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                <i data-lucide="check" class="w-4 h-4"></i> Confirm Employment & Wage
+              </button>
+              <button onclick="confirmEmployerOtp('REJECTED')" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl transition border border-rose-200">
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 5: PROVIDER SCORECARD -->
+      <!-- ======================================================== -->
+      <section id="panel-providers" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Explainable Provider Scorecard & Ranking</h3>
+              <p class="text-xs text-slate-500">Formulated on verified livelihood retention rather than raw certificate counts.</p>
+            </div>
+            <div class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+              Deterministic Weights: 30% Placement + 25% 6M Ret + 20% 12M Ret + 15% Wage + 10% Response
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                  <th class="py-2.5 px-3">Provider Name</th>
+                  <th class="py-2.5 px-3">Location</th>
+                  <th class="py-2.5 px-3">Trainees Tracked</th>
+                  <th class="py-2.5 px-3">Verified Placement</th>
+                  <th class="py-2.5 px-3">6M Retention</th>
+                  <th class="py-2.5 px-3">Score & Tier</th>
+                </tr>
+              </thead>
+              <tbody id="providers-tbody" class="divide-y divide-slate-100 text-slate-800">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 6: EXPLAINABLE REASON NLP -->
+      <!-- ======================================================== -->
+      <section id="panel-classifier" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="cpu" class="w-5 h-5 text-indigo-600"></i>
+              Explainable Reason Classifier
+            </h3>
+            <p class="text-xs text-slate-500">Transparent text categorization mapping trainee follow-up statements to standard skilling taxonomy with audited reasoning.</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-700">Test Trainee Unstructured Voice/Text Feedback:</label>
+            <textarea id="nlpInput" rows="3" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Type reason... e.g., The company is too far from my village and there is no reliable bus.">The company is too far from my village and there is no reliable bus.</textarea>
+            <div class="flex justify-between items-center pt-1">
+              <div class="flex space-x-1.5 text-[11px]">
+                <button onclick="setNlpPreset('distance')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-600">Preset: Distance/Bus</button>
+                <button onclick="setNlpPreset('salary')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-600">Preset: Low Salary</button>
+                <button onclick="setNlpPreset('family')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-600">Preset: Family Care</button>
+              </div>
+              <button onclick="runClassifier()" class="py-1.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow">
+                Classify Reason
+              </button>
+            </div>
+          </div>
+
+          <div id="nlpResult" class="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase">Standard Reason Code:</span>
+              <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-lg font-bold text-xs" id="nlp-reason">TRANSPORTATION_BARRIER</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span class="text-slate-400 font-semibold">Category:</span>
+                <div class="font-bold text-slate-800" id="nlp-cat">Mobility</div>
+              </div>
+              <div>
+                <span class="text-slate-400 font-semibold">Deterministic Confidence:</span>
+                <div class="font-bold text-emerald-600" id="nlp-conf">0.92 (92%)</div>
+              </div>
+            </div>
+            <div class="text-xs">
+              <span class="text-slate-400 font-semibold">Matched Linguistic Concepts:</span>
+              <div class="font-mono text-slate-700 font-medium mt-0.5" id="nlp-concepts">["distance", "bus", "village connectivity"]</div>
+            </div>
+            <div class="text-xs p-2.5 bg-white rounded-lg border border-indigo-200/60 text-slate-600" id="nlp-expl">
+              Explanation: Detected explicit references to geographical distance and transit limitations.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 7: GOVERNMENT INTEGRATION CENTER -->
+      <!-- ======================================================== -->
+      <section id="panel-integrations" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="network" class="w-5 h-5 text-blue-600"></i>
+                Government Integration Center
+              </h3>
+              <p class="text-xs text-slate-500">Outcomes intelligence layer acting as a connector across administrative silos.</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+              5 Active Connectors (Simulated)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="integrations-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 8: PUBLIC POLICY DASHBOARD -->
+      <!-- ======================================================== -->
+      <section id="panel-public" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Public District Skill Outcomes</h3>
+              <p class="text-xs text-slate-500">Citizen & Researcher view with strict DPDP Act 2023 differential privacy and k-anonymity (n &ge; 5).</p>
+            </div>
+            <span class="text-xs font-mono px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-bold border border-slate-300">
+              Privacy Threshold: n &ge; 5
+            </span>
+          </div>
+
+          <div class="space-y-4" id="public-districts">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 9: SYSTEM AUDIT TRAIL -->
+      <!-- ======================================================== -->
+      <section id="panel-audit" class="content-panel hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-600"></i>
+                Immutable System Audit Trail
+              </h3>
+              <p class="text-xs text-slate-500">Tamper-evident log of logins, trainee record queries, consent mutations, and verifications.</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+              DPDP Accountability Layer
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                  <th class="py-2.5 px-3">Timestamp</th>
+                  <th class="py-2.5 px-3">Actor Role</th>
+                  <th class="py-2.5 px-3">Action</th>
+                  <th class="py-2.5 px-3">Resource</th>
+                  <th class="py-2.5 px-3">Metadata</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody" class="divide-y divide-slate-100 text-slate-800">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    SkillTrack India — Consent-Driven Longitudinal Skilling Outcomes & Livelihood Intelligence • Smart India Hackathon Prototype
+  </footer>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // Configurable API Base URL (defaults to empty string for relative paths in monolith deployments)
+    const API_BASE = window.__API_BASE__ || window.API_BASE_URL || '';
+    let currentHero = 1;
+    let retentionChartInstance = null;
+
+    const HERO_DATA = {
+      1: {
+        name: 'Priya Sharma',
+        pid: 'STI-2026-004281',
+        course: 'Retail Sales Associate',
+        provider: 'Apex Skilling Academy',
+        location: 'Jaipur, Rajasthan',
+        status: 'Formal Employment',
+        wage: '₹16,500 / month',
+        retention: '6M Verified',
+        risk: 'LOW',
+        provenance: 'EMPLOYER_VERIFIED ✓',
+        provClass: 'bg-emerald-100 text-emerald-800',
+        timeline: [
+          { title: 'Enrolled in Batch RJ-2025-01', date: 'Jan 2025', meta: 'Retail Sales Associate • Apex Academy' },
+          { title: 'Certified NCVET Level 4', date: 'Mar 2025', meta: 'Certificate # NCVET-2026-004281-R' },
+          { title: 'Consent Granted (v2.1)', date: 'Apr 2025', meta: 'Channel: WhatsApp Bot • Purpose: Outcome Tracking' },
+          { title: 'Livelihood Outcome Self-Reported', date: 'Jun 2025', meta: 'Sales Associate at ABC Retail Pvt Ltd' },
+          { title: 'Employer Verified via OTP', date: 'Jul 2025', meta: 'Confirmed by ABC Retail HR • Provenance upgraded' },
+          { title: '6-Month Active Livelihood Retained', date: 'Sep 2025', meta: 'Wage increment confirmed: ₹16,500' }
+        ]
+      },
+      2: {
+        name: 'Ramesh Kumar',
+        pid: 'STI-2026-001942',
+        course: 'Solar PV Rooftop Technician',
+        provider: 'Jaipur Rural Vocational Institute',
+        location: 'Chomu, Jaipur',
+        status: 'Self-Employed (Solar Micro-Enterprise)',
+        wage: '₹21,000 / month (Range)',
+        retention: '6M Active',
+        risk: 'LOW',
+        provenance: 'SELF_REPORTED (Validated)',
+        provClass: 'bg-blue-100 text-blue-800',
+        timeline: [
+          { title: 'Enrolled in Solar Technician Batch', date: 'Feb 2025', meta: 'Green Energy Sector • NSQF Level 4' },
+          { title: 'Certified NCVET Solar Installer', date: 'May 2025', meta: 'Certificate # NCVET-2026-001942-S' },
+          { title: 'Registered Solar Services Unit', date: 'Jun 2025', meta: 'Chomu District Unit • Udyam Registration mapped' },
+          { title: 'Follow-up Response Recorded', date: 'Aug 2025', meta: 'Reported monthly business income ₹18,000 - ₹24,000' }
+        ]
+      },
+      3: {
+        name: 'Sunita Meena',
+        pid: 'STI-2026-003810',
+        course: 'Retail Sales Associate',
+        provider: 'Apex Skilling Academy',
+        location: 'Dausa / Jaipur Rural',
+        status: 'Unemployed / Looking',
+        wage: 'Declined Offer',
+        retention: 'Offer Declined',
+        risk: 'MEDIUM',
+        provenance: 'REASON_CLASSIFIED',
+        provClass: 'bg-amber-100 text-amber-800',
+        timeline: [
+          { title: 'Completed Retail Training & Certified', date: 'Mar 2025', meta: 'Apex Skilling Academy' },
+          { title: 'Job Offer Received: ABC Retail', date: 'May 2025', meta: 'Location: Mansarovar Jaipur (26 km away)' },
+          { title: 'Offer Declined via Follow-up Bot', date: 'Jun 2025', meta: 'Reason: Transportation barrier & bus timing gap' },
+          { title: 'NLP Classifier Categorization', date: 'Jun 2025', meta: 'Code: TRANSPORTATION_BARRIER (Conf: 92%)' }
+        ]
+      },
+      4: {
+        name: 'Amit Verma',
+        pid: 'STI-2026-005119',
+        course: 'CNC Machining Specialist',
+        provider: 'Marwar Skill Foundation',
+        location: 'Jodhpur, Rajasthan',
+        status: 'Unreachable / Inactive',
+        wage: 'Unknown',
+        retention: 'At Risk',
+        risk: 'HIGH',
+        provenance: 'UNVERIFIED',
+        provClass: 'bg-rose-100 text-rose-800',
+        timeline: [
+          { title: 'Certified CNC Machining', date: 'Jan 2025', meta: 'High mechanical aptitude recorded' },
+          { title: '3-Month Follow-up Bounced', date: 'Apr 2025', meta: 'Primary mobile unreachable / invalid' },
+          { title: 'Contactability Risk Flagged HIGH', date: 'May 2025', meta: 'Fallback chain initiated: Alternate Contact (Brother)' },
+          { title: 'Field Outreach Assigned', date: 'Jun 2025', meta: 'District skill committee field task queued' }
+        ]
+      },
+      5: {
+        name: 'Vikram Singh',
+        pid: 'STI-2026-006204',
+        course: 'Retail Sales Associate',
+        provider: 'Apex Skilling Academy',
+        location: 'Jaipur, Rajasthan',
+        status: 'Formal Employment',
+        wage: '₹14,500 / month',
+        retention: '3M Verified',
+        risk: 'LOW',
+        provenance: 'EMPLOYER_FEEDBACK_ATTACHED',
+        provClass: 'bg-purple-100 text-purple-800',
+        timeline: [
+          { title: 'Completed Retail Sales Associate Course', date: 'Apr 2025', meta: 'Batch RJ-2025-02' },
+          { title: 'Placed as Inventory Trainee', date: 'Jul 2025', meta: 'Employer: ABC Retail Pvt Ltd' },
+          { title: 'Employer Verification Completed', date: 'Aug 2025', meta: 'HR Feedback Flagged: Excel & Inventory Deficiency' },
+          { title: 'Skill Gap Aggregator Updated', date: 'Aug 2025', meta: 'Fed into District Curriculum Advisory' }
+        ]
+      }
+    };
+
+    function showTab(tabId) {
+      document.querySelectorAll('.content-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('bg-blue-50', 'text-blue-700');
+        b.classList.add('text-slate-600');
+      });
+
+      const panel = document.getElementById(`panel-${tabId}`);
+      const btn = document.getElementById(`tab-${tabId}`);
+      if (panel) panel.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('bg-blue-50', 'text-blue-700');
+        btn.classList.remove('text-slate-600');
+      }
+
+      if (tabId === 'dashboard') renderRetentionChart();
+      lucide.createIcons();
+    }
+
+    function loadHero(caseNum) {
+      currentHero = caseNum;
+      const h = HERO_DATA[caseNum];
+      if (!h) return;
+
+      document.getElementById('pass-name').textContent = h.name;
+      document.getElementById('pass-avatar').textContent = h.name.split(' ').map(n=>n[0]).join('');
+      document.getElementById('pass-pid').textContent = `Persistent ID: ${h.pid}`;
+      document.getElementById('pass-course').textContent = h.course;
+      document.getElementById('pass-provider').textContent = h.provider;
+      document.getElementById('pass-loc').textContent = h.location;
+      document.getElementById('pass-status').textContent = h.status;
+      document.getElementById('pass-wage').textContent = h.wage;
+      document.getElementById('pass-retention').textContent = h.retention;
+      document.getElementById('pass-risk').textContent = h.risk;
+      
+      const provEl = document.getElementById('pass-provenance');
+      provEl.textContent = h.provenance;
+      provEl.className = `px-2 py-0.5 rounded-full text-xs font-bold ${h.provClass}`;
+
+      // Timeline
+      const tl = document.getElementById('passport-timeline');
+      tl.innerHTML = '';
+      h.timeline.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'relative pl-6';
+        div.innerHTML = `
+          <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-600 border-2 border-white"></div>
+          <div class="font-bold text-slate-900 text-xs">${item.title}</div>
+          <div class="text-[11px] text-slate-400 font-mono">${item.date}</div>
+          <div class="text-xs text-slate-600 mt-0.5">${item.meta}</div>
+        `;
+        tl.appendChild(div);
+      });
+
+      showTab('passport');
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/analytics/dashboard`);
+        const data = await res.json();
+        
+        document.getElementById('kpi-certified').textContent = data.metrics.certified_trainees;
+        document.getElementById('kpi-verified').textContent = `${data.metrics.verified_employment_rate}%`;
+        document.getElementById('kpi-retention').textContent = `${data.metrics.retention_6m}%`;
+
+        // Render Funnel
+        const fc = document.getElementById('funnel-container');
+        fc.innerHTML = '';
+        data.funnel.forEach(step => {
+          const row = document.createElement('div');
+          row.className = 'space-y-1';
+          row.innerHTML = `
+            <div class="flex justify-between text-xs font-medium">
+              <span class="text-slate-700">${step.stage}</span>
+              <span class="font-bold text-slate-900">${step.count} (${step.percent}%)</span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-blue-600 rounded-full" style="width: ${step.percent}%"></div>
+            </div>
+          `;
+          fc.appendChild(row);
+        });
+
+        renderRetentionChart(data.retentionCurve);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderRetentionChart(curveData) {
+      const ctx = document.getElementById('retentionChart');
+      if (!ctx) return;
+      if (retentionChartInstance) retentionChartInstance.destroy();
+
+      const labels = curveData ? curveData.map(c => c.checkpoint) : ['3 Months', '6 Months', '9 Months', '12 Months'];
+      const values = curveData ? curveData.map(c => c.rate) : [68, 63, 58, 52];
+
+      retentionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Retention %',
+            data: values,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 40, max: 100, ticks: { callback: v => v + '%' } }
+          }
+        }
+      });
+    }
+
+    async function loadSkillGaps() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/analytics/skill-gaps`);
+        const data = await res.json();
+        const sc = document.getElementById('skillgaps-container');
+        sc.innerHTML = '';
+
+        if (data.privacyStatus === 'INSUFFICIENT SAMPLE') {
+          sc.innerHTML = '<div class="p-3 bg-slate-50 text-slate-500 text-xs rounded-xl">INSUFFICIENT SAMPLE FOR PRIVACY (Threshold n >= 5)</div>';
+          return;
+        }
+
+        data.gaps.forEach(g => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs';
+          div.innerHTML = `
+            <div>
+              <span class="font-bold text-slate-900">${g.skill}</span>
+              <span class="text-[11px] text-slate-500 block">Reported deficient in ${g.count} employer verifications</span>
+            </div>
+            <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold">${g.percentage}% Deficiency</span>
+          `;
+          sc.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadProviders() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/providers`);
+        const data = await res.json();
+        const tbody = document.getElementById('providers-tbody');
+        tbody.innerHTML = '';
+
+        data.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-slate-900">${p.name}</td>
+            <td class="py-2.5 px-3 text-slate-500">${p.location}</td>
+            <td class="py-2.5 px-3 font-mono">${p.totalTrainees}</td>
+            <td class="py-2.5 px-3 font-semibold text-blue-600">${p.metrics.verifiedPlacementRate}%</td>
+            <td class="py-2.5 px-3 font-semibold text-indigo-600">${p.metrics.retention6m}%</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2 py-0.5 rounded font-bold text-xs ${p.grade === 'A' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                Tier ${p.grade} (${p.compositeScore}/100)
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadIntegrations() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/integrations`);
+        const data = await res.json();
+        const grid = document.getElementById('integrations-grid');
+        grid.innerHTML = '';
+
+        data.integrations.forEach(i => {
+          const card = document.createElement('div');
+          card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-900 text-xs">${i.name}</h4>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${i.status === 'SIMULATED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}">
+                ${i.status}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500">${i.purpose}</p>
+            <div class="flex justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-200">
+              <span>Records: <b>${i.recordsProcessed}</b></span>
+              <button onclick="syncIntegration('${i.id}')" class="text-blue-600 hover:underline font-semibold">Trigger Sync ➔</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function syncIntegration(id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/integrations/${id}/sync`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Sync triggered successfully!');
+        loadIntegrations();
+      } catch (err) {
+        alert('Sync completed in demonstration mode.');
+      }
+    }
+
+    async function loadPublicPolicy() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/analytics/public-policy`);
+        const data = await res.json();
+        const container = document.getElementById('public-districts');
+        container.innerHTML = '';
+
+        data.districts.forEach(d => {
+          const div = document.createElement('div');
+          div.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs space-y-2';
+          
+          if (d.privacyStatus === 'INSUFFICIENT SAMPLE FOR PRIVACY') {
+            div.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">${d.district} (${d.state})</span>
+                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[10px]">SUPPRESSED</span>
+              </div>
+              <div class="text-rose-700 font-medium">⚠️ INSUFFICIENT SAMPLE FOR PRIVACY (n = ${d.sampleSize} &lt; 5). Aggregate suppressed under DPDP Act 2023.</div>
+            `;
+          } else {
+            div.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">${d.district} (${d.state})</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">n = ${d.certified} (Safe)</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-slate-600">
+                <div>Verified Placed: <b>${d.verifiedEmploymentRate}%</b></div>
+                <div>6M Retention: <b>${d.sixMonthRetention}%</b></div>
+                <div>Self-Employed: <b>${d.selfEmploymentRate}%</b></div>
+                <div>Avg Wage: <b>${d.avgWageBand}</b></div>
+              </div>
+            `;
+          }
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function runClassifier() {
+      const text = document.getElementById('nlpInput').value;
+      if (!text) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/analytics/classify-reason`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ raw_text: text })
+        });
+        const data = await res.json();
+
+        document.getElementById('nlp-reason').textContent = data.reason;
+        document.getElementById('nlp-cat').textContent = data.category;
+        document.getElementById('nlp-conf').textContent = `${data.confidence} (${Math.round(data.confidence*100)}%)`;
+        document.getElementById('nlp-concepts').textContent = JSON.stringify(data.matched_concepts);
+        document.getElementById('nlp-expl').textContent = `Explanation: ${data.explanation}`;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setNlpPreset(type) {
+      const input = document.getElementById('nlpInput');
+      if (type === 'distance') input.value = 'The company is too far from my village and there is no reliable bus.';
+      if (type === 'salary') input.value = 'The offer was only ₹8,000 and room rent in Jaipur is ₹4,000, not enough salary.';
+      if (type === 'family') input.value = 'My mother was unwell so I had to stay back for family care responsibilities.';
+      runClassifier();
+    }
+
+    function replyBot(choice) {
+      const chat = document.getElementById('chat-messages');
+      const userMsg = document.createElement('div');
+      userMsg.className = 'bg-emerald-100 p-2.5 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-slate-800';
+      userMsg.textContent = choice;
+      chat.appendChild(userMsg);
+
+      setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'bg-white p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-slate-800';
+        botMsg.innerHTML = 'Thank you Priya! We have recorded your employment outcome. Your verification OTP has been routed to your employer. ✨';
+        chat.appendChild(botMsg);
+        chat.scrollTop = chat.scrollHeight;
+      }, 600);
+    }
+
+    function sendManualBotMessage() {
+      const input = document.getElementById('botInput');
+      if (input.value.trim()) {
+        replyBot(input.value.trim());
+        input.value = '';
+      }
+    }
+
+    async function confirmEmployerOtp(status) {
+      const otp = document.getElementById('verify-otp-input').value;
+      alert(`Employer verification processed: Status = ${status}! Trainee passport provenance is now updated to EMPLOYER_VERIFIED.`);
+      loadHero(1);
+    }
+
+    // WOW Flow Simulation for 30s Demonstration
+    function executeWowFlow() {
+      showTab('whatsapp');
+      setTimeout(() => {
+        replyBot('1. Working in Formal Job at ABC Retail');
+        setTimeout(() => {
+          showTab('verification');
+          setTimeout(() => {
+            confirmEmployerOtp('CONFIRMED');
+            setTimeout(() => {
+              loadHero(1);
+              alert('🎉 WOW MOMENT COMPLETE: Event propagated through WhatsApp ➔ Employer Verification ➔ Trainee Passport ➔ Dashboard KPIs!');
+            }, 1000);
+          }, 1200);
+        }, 1200);
+      }, 800);
+    }
+
+    function switchRole(role) {
+      console.log('Switched to role:', role);
+      if (role === 'TRAINEE') loadHero(1);
+      else if (role === 'EMPLOYER') showTab('verification');
+      else showTab('dashboard');
+    }
+
+    let isConsentActive = true;
+
+    function toggleActiveConsent() {
+      isConsentActive = !isConsentActive;
+      const badge = document.getElementById('pass-consent-badge');
+      const btn = document.getElementById('btn-toggle-consent');
+
+      if (isConsentActive) {
+        badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold';
+        badge.innerHTML = '<i data-lucide="lock" class="w-3 h-3 mr-1"></i> Consent Active (v2.1)';
+        btn.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1 ml-auto';
+        btn.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3"></i> Revoke Tracking Consent';
+        alert('DPDP Consent GRANTED: Follow-up outreach and outcome tracking are now active.');
+      } else {
+        badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold';
+        badge.innerHTML = '<i data-lucide="slash" class="w-3 h-3 mr-1"></i> CONSENT REVOKED';
+        btn.className = 'px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1 ml-auto';
+        btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Re-grant Tracking Consent';
+        alert('⚠️ DPDP Consent REVOKED (Principle A enforced): Future automated follow-up outreach and outcome collection are strictly BLOCKED.');
+      }
+      lucide.createIcons();
+    }
+
+    async function loadAuditLogs() {
+      try {
+        // Authenticate as system admin to view audit trail
+        const authRes = await fetch(`${API_BASE}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: 'admin123' })
+        });
+        const { token } = await authRes.json();
+
+        const res = await fetch(`${API_BASE}/api/v1/audit`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('audit-tbody');
+        tbody.innerHTML = '';
+
+        data.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition';
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-mono text-[11px] text-slate-500">${new Date(log.timestamp).toLocaleTimeString()}</td>
+            <td class="py-2 px-3 font-bold text-slate-800">${log.actor?.role?.name || 'SYSTEM'}</td>
+            <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${log.action.includes('LOGIN') ? 'bg-blue-100 text-blue-800' : log.action.includes('OUTCOME') ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}">${log.action}</span></td>
+            <td class="py-2 px-3 font-mono text-[11px] text-slate-600">${log.resource}</td>
+            <td class="py-2 px-3 text-[11px] text-slate-500 truncate max-w-xs">${log.metadata || '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Audit load error:', err);
+      }
+    }
+
+    function refreshData() {
+      loadDashboard();
+      loadSkillGaps();
+      loadProviders();
+      loadIntegrations();
+      loadPublicPolicy();
+      loadAuditLogs();
+      loadHero(currentHero);
+    }
+
+    // Update showTab hook
+    const originalShowTab = showTab;
+    showTab = function(tabId) {
+      originalShowTab(tabId);
+      if (tabId === 'audit') loadAuditLogs();
+    };
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHero(1);
+      loadDashboard();
+      loadSkillGaps();
+      loadProviders();
+      loadIntegrations();
+      loadPublicPolicy();
+      loadAuditLogs();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

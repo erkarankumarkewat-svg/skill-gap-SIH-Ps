@@ -1,0 +1,321 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id    String @id @default(uuid())
+  name  String @unique // TRAINEE, PROVIDER, DISTRICT_ADMIN, SYSTEM_ADMIN, EMPLOYER
+  users User[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  password_hash String
+  role_id       String
+  role          Role     @relation(fields: [role_id], references: [id])
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  active        Boolean  @default(true)
+  
+  trainee       Trainee?
+  provider_id   String?
+  provider      Provider? @relation(fields: [provider_id], references: [id])
+  
+  audit_events  AuditEvent[]
+}
+
+model Trainee {
+  id             String   @id @default(uuid())
+  persistent_id  String   @unique // STI-YYYY-XXXXXX
+  user_id        String   @unique
+  user           User     @relation(fields: [user_id], references: [id])
+  first_name     String
+  last_name      String
+  date_of_birth  DateTime?
+  gender         String?
+
+  enrolments            TrainingEnrolment[]
+  contact_points        ContactPoint[]
+  alternate_contacts    AlternateContact[]
+  contactability_events ContactabilityEvent[]
+  consent_log           ConsentLog[]
+  outcome_events        OutcomeEvent[]
+  wage_records          WageRecord[]
+  follow_ups            FollowUp[]
+}
+
+model Provider {
+  id           String   @id @default(uuid())
+  name         String
+  location     String
+  contact_info String?
+  
+  users        User[]
+  batches      Batch[]
+}
+
+model Course {
+  id         String   @id @default(uuid())
+  name       String
+  nsqf_level String?
+  sector     String?
+  
+  batches    Batch[]
+  skill_tags CourseSkillTag[]
+}
+
+model Batch {
+  id          String   @id @default(uuid())
+  provider_id String
+  provider    Provider @relation(fields: [provider_id], references: [id])
+  course_id   String
+  course      Course   @relation(fields: [course_id], references: [id])
+  start_date  DateTime
+  end_date    DateTime?
+  
+  enrolments  TrainingEnrolment[]
+}
+
+model TrainingEnrolment {
+  id              String   @id @default(uuid())
+  trainee_id      String
+  trainee         Trainee  @relation(fields: [trainee_id], references: [id])
+  batch_id        String
+  batch           Batch    @relation(fields: [batch_id], references: [id])
+  status          String   // ENROLLED, ONGOING, DROPOUT, COMPLETED
+  enrollment_date DateTime @default(now())
+  
+  certification   CertificationRecord?
+}
+
+model CertificationRecord {
+  id                 String   @id @default(uuid())
+  enrolment_id       String   @unique
+  enrolment          TrainingEnrolment @relation(fields: [enrolment_id], references: [id])
+  issue_date         DateTime @default(now())
+  certificate_number String   @unique
+}
+
+model ContactPoint {
+  id           String   @id @default(uuid())
+  trainee_id   String
+  trainee      Trainee  @relation(fields: [trainee_id], references: [id])
+  type         String   // MOBILE, WHATSAPP, EMAIL
+  value        String
+  is_primary   Boolean  @default(false)
+  verified_date DateTime?
+}
+
+model AlternateContact {
+  id           String   @id @default(uuid())
+  trainee_id   String
+  trainee      Trainee  @relation(fields: [trainee_id], references: [id])
+  relation     String
+  contact_value String
+}
+
+model ContactabilityEvent {
+  id           String   @id @default(uuid())
+  trainee_id   String
+  trainee      Trainee  @relation(fields: [trainee_id], references: [id])
+  event_type   String   // BOUNCE, REACHED, STALE
+  date         DateTime @default(now())
+}
+
+model ConsentPurpose {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  description String
+  logs        ConsentLog[]
+}
+
+model ConsentLog {
+  id                  String   @id @default(uuid())
+  trainee_id          String
+  trainee             Trainee  @relation(fields: [trainee_id], references: [id])
+  purpose_id          String
+  purpose             ConsentPurpose @relation(fields: [purpose_id], references: [id])
+  action              String   // GRANTED, REVOKED
+  notice_version      String
+  timestamp           DateTime @default(now())
+  channel             String
+  actor_id            String?
+  previous_event_hash String?
+  current_event_hash  String
+}
+
+model OutcomeEvent {
+  id             String   @id @default(uuid())
+  trainee_id     String
+  trainee        Trainee  @relation(fields: [trainee_id], references: [id])
+  status         String   // FORMAL_EMPLOYMENT, SELF_EMPLOYED, UNEMPLOYED_LOOKING, etc.
+  source         String   // SELF_REPORTED, SYSTEM_DERIVED, EMPLOYER_VERIFIED
+  reported_date  DateTime @default(now())
+  
+  employment_record   EmploymentRecord?
+  self_employment     SelfEmploymentRecord?
+}
+
+model EmploymentRecord {
+  id               String   @id @default(uuid())
+  outcome_event_id String   @unique
+  outcome_event    OutcomeEvent @relation(fields: [outcome_event_id], references: [id])
+  employer_id      String?
+  employer         Employer? @relation(fields: [employer_id], references: [id])
+  role             String?
+  joining_month    String?  // YYYY-MM
+  current_status   String?
+  
+  attrition_events AttritionEvent[]
+  verifications    EmployerVerification[]
+  wages            WageRecord[]
+}
+
+model SelfEmploymentRecord {
+  id               String   @id @default(uuid())
+  outcome_event_id String   @unique
+  outcome_event    OutcomeEvent @relation(fields: [outcome_event_id], references: [id])
+  business_type    String?
+  income_range     String?
+  location         String?
+}
+
+model AttritionEvent {
+  id                   String   @id @default(uuid())
+  employment_record_id String
+  employment_record    EmploymentRecord @relation(fields: [employment_record_id], references: [id])
+  exit_date            DateTime?
+  reason_code_id       String?
+  reason_code          ReasonCode? @relation(fields: [reason_code_id], references: [id])
+}
+
+model Employer {
+  id            String   @id @default(uuid())
+  name          String
+  industry      String?
+  registry_id   String?
+  
+  employments   EmploymentRecord[]
+  verifications EmployerVerification[]
+}
+
+model EmployerVerification {
+  id                   String   @id @default(uuid())
+  employment_record_id String
+  employment_record    EmploymentRecord @relation(fields: [employment_record_id], references: [id])
+  employer_id          String
+  employer             Employer @relation(fields: [employer_id], references: [id])
+  status               String   // PENDING, CONFIRMED, REJECTED, CANNOT_VERIFY
+  verification_date    DateTime?
+  
+  tokens               VerificationToken[]
+  skill_feedbacks      EmployerSkillFeedback[]
+}
+
+model VerificationToken {
+  id              String   @id @default(uuid())
+  verification_id String
+  verification    EmployerVerification @relation(fields: [verification_id], references: [id])
+  token           String
+  expires_at      DateTime
+  attempts        Int      @default(0)
+}
+
+model WageRecord {
+  id                   String   @id @default(uuid())
+  trainee_id           String
+  trainee              Trainee  @relation(fields: [trainee_id], references: [id])
+  employment_record_id String?
+  employment_record    EmploymentRecord? @relation(fields: [employment_record_id], references: [id])
+  amount               Float?
+  wage_type            String   // MONTHLY, DAILY, STIPEND, RANGE
+  recorded_date        DateTime @default(now())
+  verification_status  String   // UNVERIFIED, VERIFIED
+}
+
+model FollowUpCampaign {
+  id             String   @id @default(uuid())
+  name           String
+  target_cohort  String
+  scheduled_date DateTime
+  
+  follow_ups     FollowUp[]
+}
+
+model FollowUp {
+  id               String   @id @default(uuid())
+  campaign_id      String
+  campaign         FollowUpCampaign @relation(fields: [campaign_id], references: [id])
+  trainee_id       String
+  trainee          Trainee  @relation(fields: [trainee_id], references: [id])
+  status           String   // SCHEDULED, SENT, RESPONDED, CANCELLED
+  interval_months  Int      // 3, 6, 9, 12
+  
+  responses        FollowUpResponse[]
+}
+
+model FollowUpResponse {
+  id             String   @id @default(uuid())
+  follow_up_id   String
+  follow_up      FollowUp @relation(fields: [follow_up_id], references: [id])
+  raw_response   String
+  mapped_outcome_id String?
+}
+
+model ReasonCode {
+  id       String   @id @default(uuid())
+  category String   // SKILLS, MOBILITY, LABOUR_MARKET, etc.
+  code     String   @unique
+  
+  attritions AttritionEvent[]
+}
+
+model SkillTag {
+  id       String   @id @default(uuid())
+  name     String   @unique
+  
+  course_tags       CourseSkillTag[]
+  employer_feedback EmployerSkillFeedback[]
+}
+
+model CourseSkillTag {
+  course_id String
+  course    Course   @relation(fields: [course_id], references: [id])
+  skill_id  String
+  skill     SkillTag @relation(fields: [skill_id], references: [id])
+  
+  @@id([course_id, skill_id])
+}
+
+model EmployerSkillFeedback {
+  id              String   @id @default(uuid())
+  verification_id String
+  verification    EmployerVerification @relation(fields: [verification_id], references: [id])
+  skill_id        String
+  skill           SkillTag @relation(fields: [skill_id], references: [id])
+  deficiency_flag Boolean  @default(true)
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid())
+  actor_id    String?
+  actor       User?    @relation(fields: [actor_id], references: [id])
+  action      String
+  resource    String
+  timestamp   DateTime @default(now())
+  metadata    String?
+}
+
+model IntegrationSyncEvent {
+  id               String   @id @default(uuid())
+  integration_name String
+  status           String
+  records_processed Int
+  timestamp        DateTime @default(now())
+}
